@@ -4,7 +4,7 @@ public:
     return {
       constants : {"operation0"},
       input_ports : {"A0", "B0", "Shift0"},
-      output_ports : {"out0"},
+      output_ports : {"Value0"},
     };
   }
 
@@ -13,7 +13,7 @@ public:
 
     switch (op_c) {
     case "NOT":
-      return {WildcardToken("out0"), TextToken(" = ~"), WildcardToken("A0"),
+      return {WildcardToken("Value0"), TextToken(" = ~"), WildcardToken("A0"),
               TextToken(";")};
 
     case "AND":
@@ -28,18 +28,19 @@ public:
         sign = "^";
       }
 
-      return {WildcardToken("out0"), TextToken(" = "),
-              WildcardToken("A0"),   TextToken(" " + sign + " "),
-              WildcardToken("B0"),   TextToken(";")};
+      return {WildcardToken("Value0"), TextToken(" = "),
+              WildcardToken("A0"),     TextToken(" " + sign + " "),
+              WildcardToken("B0"),     TextToken(";")};
     }
 
+    // TODO: implement Helper Functions
     case "SHIFT":
-      return {WildcardToken("out0"),   TextToken(" = glsl_shift("),
+      return {WildcardToken("Value0"), TextToken(" = glsl_shift("),
               WildcardToken("A0"),     TextToken(", "),
               WildcardToken("Shift0"), TextToken(");")};
 
     case "ROTATE":
-      return {WildcardToken("out0"),   TextToken(" = glsl_rotate("),
+      return {WildcardToken("Value0"), TextToken(" = glsl_rotate("),
               WildcardToken("A0"),     TextToken(", "),
               WildcardToken("Shift0"), TextToken(");")};
 
