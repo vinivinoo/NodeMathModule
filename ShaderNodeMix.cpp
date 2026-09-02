@@ -1,29 +1,19 @@
-class ShaderNodeMixModule : public Module {
- public:
-  override auto GetFetchInfo(): FetchInfo {
+class ShaderNodeMix : public Module {
+public:
+  override auto GetFetchInfo() : FetchInfo {
     return {
-      constants: {
-        "data_type0",
-        "factor_mode0",
-        "blend_type0",
-        "clamp_factor0",
-        "clamp_result0"
-      },
-      input_ports: {
-        "Factor0", "Factor1",
-        "A0", "B0",
-        "A1", "B1",
-        "A2", "B2",
-        "A3", "B3"
-      },
-      output_ports: { "Result0" },
+      constants : {"data_type0", "factor_mode0", "blend_type0", "clamp_factor0",
+                   "clamp_result0"},
+      input_ports : {"Factor0", "Factor1", "A0", "B0", "A1", "B1", "A2", "B2",
+                     "A3", "B3"},
+      output_ports : {"Result0"},
     };
   }
 
-  override auto GenerateTokenString(): AbstractToken[] {
-    string dataType    = GetConstant("data_type0");
-    string factorMode  = GetConstant("factor_mode0");
-    string blendType   = GetConstant("blend_type0");
+  override auto GenerateTokenString() : AbstractToken[] {
+    string dataType = GetConstant("data_type0");
+    string factorMode = GetConstant("factor_mode0");
+    string blendType = GetConstant("blend_type0");
     string clampFactor = GetConstant("clamp_factor0");
     string clampResult = GetConstant("clamp_result0");
 
@@ -41,19 +31,17 @@ class ShaderNodeMixModule : public Module {
       portB = "B3";
     }
 
-    // Auswahl des Factor-Ports (Factor1 wird bei vektoriellen/non-uniform Faktoren verwendet)
+    // Auswahl des Factor-Ports (Factor1 wird bei vektoriellen/non-uniform
+    // Faktoren verwendet)
     string portFactor = (factorMode == "NON_UNIFORM") ? "Factor1" : "Factor0";
 
     // Factor-Tokens inklusive optionalem Clamping auf [0.0, 1.0]
     vector<AbstractToken> factorTokens;
     if (clampFactor == "True") {
-      factorTokens = {
-        TextToken("clamp("),
-        WildcardToken(portFactor),
-        TextToken(", 0.0, 1.0)")
-      };
+      factorTokens = {TextToken("clamp("), WildcardToken(portFactor),
+                      TextToken(", 0.0, 1.0)")};
     } else {
-      factorTokens = { WildcardToken(portFactor) };
+      factorTokens = {WildcardToken(portFactor)};
     }
 
     vector<AbstractToken> tokens;
@@ -76,37 +64,43 @@ class ShaderNodeMixModule : public Module {
     } else {
       // GLSL-Ausdrücke für erweiterte Blend-Modi: mix(A, Blended(A, B), Factor)
       string prefix = "";
-      string infix  = "";
+      string infix = "";
       string suffix = "";
 
       if (blendType == "DARKEN") {
-        prefix = "min("; infix = ", "; suffix = ")";
+        prefix = "min(";
+        infix = ", ";
+        suffix = ")";
       } else if (blendType == "LIGHTEN") {
-        prefix = "max("; infix = ", "; suffix = ")";
+        prefix = "max(";
+        infix = ", ";
+        suffix = ")";
       } else if (blendType == "MULTIPLY") {
         infix = " * ";
       } else if (blendType == "SCREEN") {
         prefix = "(vec4(1.0) - (vec4(1.0) - ";
-        infix  = ") * (vec4(1.0) - ";
+        infix = ") * (vec4(1.0) - ";
         suffix = "))";
       } else if (blendType == "DODGE") {
-        infix  = " / (vec4(1.0) - ";
+        infix = " / (vec4(1.0) - ";
         suffix = ")";
       } else if (blendType == "BURN") {
         prefix = "(vec4(1.0) - (vec4(1.0) - ";
-        infix  = ") / ";
+        infix = ") / ";
         suffix = ")";
       }
 
       tokens.push_back(TextToken("mix("));
       tokens.push_back(WildcardToken(portA));
       tokens.push_back(TextToken(", "));
-      
-      if (!prefix.empty()) tokens.push_back(TextToken(prefix));
+
+      if (!prefix.empty())
+        tokens.push_back(TextToken(prefix));
       tokens.push_back(WildcardToken(portA));
       tokens.push_back(TextToken(infix));
       tokens.push_back(WildcardToken(portB));
-      if (!suffix.empty()) tokens.push_back(TextToken(suffix));
+      if (!suffix.empty())
+        tokens.push_back(TextToken(suffix));
 
       tokens.push_back(TextToken(", "));
       tokens.insert(tokens.end(), factorTokens.begin(), factorTokens.end());
