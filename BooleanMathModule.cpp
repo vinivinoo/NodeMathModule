@@ -1,73 +1,71 @@
-// Node Definition für den GESAMTEN Boolean Math Node
 class ShaderNodeBooleanMathModule : public Module {
   public:
   override auto GetFetchInfo(): FetchInfo {
     return {
-      constants: { "operation0" }, // Enum aus Blender
-      input_ports: { "boolean0", "boolean1" },
-      output_ports: { "boolean2" },
+      constants: { "operation0" },
+      input_ports: { "Boolean0", "Boolean1" },
+      output_ports: { "Boolean2" },
     };
   }
 
   override auto GenerateTokenString(): AbstractToken[] {
-    string op_c = GetConstant("operation0");
+    string op = GetConstant("operation0");
 
-    // (NOT) 1 Input - Sonderfall
-    if (op_c == "NOT") {
+    // Single-input operation edge case
+    if (op == "NOT") {
       return {
-        WildcardToken("boolean2"), 
+        WildcardToken("Boolean2"), 
         TextToken(" = !"), 
-        WildcardToken("boolean0"), 
+        WildcardToken("Boolean0"), 
         TextToken(";")
       };
     } 
-    // Alle 2-Input Operationen
-    else {
-      string prefix = " ";
-      string infix = " ";
-      string suffix = ";";
 
-      if (op_c == "AND") { 
-        infix = " && "; 
-      }
-      else if (op_c == "OR") { 
-        infix = " || "; 
-      }
-      else if (op_c == "NOT AND") { // NAND: !(A && B)
-        prefix = " !(";
-        infix  = " && ";
-        suffix = ");";
-      }
-      else if (op_c == "NOR") { // NOR: !(A || B)
-        prefix = " !(";
-        infix  = " || ";
-        suffix = ");";
-      }
-      else if (op_c == "EQUAL") { // EQUAL (XNOR): A == B
-        infix = " == ";
-      }
-      else if (op_c == "NOT EQUAL") { // NOT EQUAL (XOR): A != B
-        infix = " != ";
-      }
-      else if (op_c == "IMPLY") { // IMPLY: !A || B
-        prefix = " (!";
-        infix  = " || ";
-        suffix = ");";
-      }
-      else if (op_c == "SUBTRACT") { // SUBTRACT: A && !B
-        prefix = " (";
-        infix  = " && !";
-        suffix = ");";
-      }
+    // Two-input operations configuration
+    string prefix = " ";
+    string infix  = " && ";
+    string suffix = ";";
 
-      return {
-        WildcardToken("boolean2"), 
-        TextToken(" =" + prefix), 
-        WildcardToken("boolean0"), 
-        TextToken(infix), 
-        WildcardToken("boolean1"), 
-        TextToken(suffix)
-      };
+    if (op == "AND") {
+      infix = " && ";
     }
+    else if (op == "OR") {
+      infix = " || ";
+    }
+    else if (op == "NAND" || op == "NOT AND") {
+      prefix = " !(";
+      infix  = " && ";
+      suffix = ");";
+    }
+    else if (op == "NOR") {
+      prefix = " !(";
+      infix  = " || ";
+      suffix = ");";
+    }
+    else if (op == "XOR" || op == "NOT EQUAL") {
+      infix = " != ";
+    }
+    else if (op == "XNOR" || op == "EQUAL") {
+      infix = " == ";
+    }
+    else if (op == "IMPLY") {
+      prefix = " (!";
+      infix  = " || ";
+      suffix = ");";
+    }
+    else if (op == "NIMPLY" || op == "SUBTRACT") {
+      prefix = " (";
+      infix  = " && !";
+      suffix = ");";
+    }
+
+    return {
+      WildcardToken("Boolean2"), 
+      TextToken(" =" + prefix), 
+      WildcardToken("Boolean0"), 
+      TextToken(infix), 
+      WildcardToken("Boolean1"), 
+      TextToken(suffix)
+    };
   }
 };
