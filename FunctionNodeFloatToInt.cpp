@@ -1,10 +1,10 @@
-class FunctionNodeFloatToIntModule : public Module {
+class FunctionNodeFloatToInt : public Module {
 public:
   override auto GetFetchInfo() : FetchInfo {
     return {
-      constants: {"rounding_mode0"},
-      input_ports: {"Float0"},
-      output_ports: {"Integer0"},
+      constants : {"rounding_mode0"},
+      input_ports : {"Float0"},
+      output_ports : {"Integer0"},
     };
   }
 
@@ -30,12 +30,7 @@ public:
       close_expr = ");";
     }
 
-    return {
-      WildcardToken("Integer0"),
-      TextToken(" = "),
-      TextToken(func_expr),
-      WildcardToken("Float0"),
-      TextToken(close_expr)
-    };
+    return {WildcardToken("Integer0"), TextToken(" = "), TextToken(func_expr),
+            WildcardToken("Float0"), TextToken(close_expr)};
   }
 };
